@@ -6,6 +6,7 @@ from mlagents.trainers.environment_parameter_manager import EnvironmentParameter
 from mlagents.trainers.exception import TrainerConfigError
 from mlagents.trainers.trainer import Trainer
 from mlagents.trainers.ppo.trainer import PPOTrainer
+from mlagents.trainers.mppo.trainer import MPPOTrainer
 from mlagents.trainers.sac.trainer import SACTrainer
 from mlagents.trainers.poca.trainer import POCATrainer
 from mlagents.trainers.ghost.trainer import GhostTrainer
@@ -105,6 +106,16 @@ class TrainerFactory:
 
         if trainer_type == TrainerType.PPO:
             trainer = PPOTrainer(
+                brain_name,
+                min_lesson_length,
+                trainer_settings,
+                train_model,
+                load_model,
+                seed,
+                trainer_artifact_path,
+            )
+        elif trainer_type == TrainerType.MPPO:
+            trainer = MPPOTrainer(
                 brain_name,
                 min_lesson_length,
                 trainer_settings,
