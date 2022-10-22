@@ -18,7 +18,8 @@ namespace Unity.MLAgents
     /// <seealso cref="Agent.RequestDecision"/> function.
     /// </remarks>
     [AddComponentMenu("ML Agents/Decision Requester", (int)MenuGroup.Default)]
-    [RequireComponent(typeof(Agent))]
+    //[RequireComponent(typeof(Agent))]
+  
     public class DecisionRequester : MonoBehaviour
     {
         /// <summary>
@@ -41,6 +42,7 @@ namespace Unity.MLAgents
 
         [NonSerialized]
         Agent m_Agent;
+        MoAgent mo_Agent;
 
         /// <summary>
         /// Get the Agent attached to the DecisionRequester.
@@ -50,10 +52,17 @@ namespace Unity.MLAgents
             get => m_Agent;
         }
 
+        public MoAgent MoAgent
+        {
+            get => mo_Agent;
+        }
+        
+
         internal void Awake()
         {
             m_Agent = gameObject.GetComponent<Agent>();
-            Debug.Assert(m_Agent != null, "Agent component was not found on this gameObject and is required.");
+            mo_Agent = gameObject.GetComponent<MoAgent>();
+            Debug.Assert((m_Agent != null || mo_Agent != null), "Agent component was not found on this gameObject and is required.");
             Academy.Instance.AgentPreStep += MakeRequests;
         }
 
@@ -91,11 +100,13 @@ namespace Unity.MLAgents
             if (ShouldRequestDecision(context))
             {
                 m_Agent?.RequestDecision();
+                mo_Agent?.RequestDecision();
             }
 
             if (ShouldRequestAction(context))
             {
                 m_Agent?.RequestAction();
+                mo_Agent?.RequestAction();
             }
         }
 

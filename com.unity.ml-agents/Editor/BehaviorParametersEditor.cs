@@ -38,8 +38,10 @@ namespace Unity.MLAgents.Editor
             bool needPolicyUpdate; // Whether the name, model, inference device, or BehaviorType changed.
 
             var behaviorParameters = (BehaviorParameters)target;
-            var agent = behaviorParameters.gameObject.GetComponent<Agent>();
-            if (agent == null)
+            var sAgent = behaviorParameters.gameObject.GetComponent<Agent>();
+            var mAgent = behaviorParameters.gameObject.GetComponent<MoAgent>();
+
+            if (sAgent == null && mAgent == null)
             {
                 EditorGUILayout.HelpBox(
                     "No Agent is associated with this Behavior Parameters. Attach an Agent to " +

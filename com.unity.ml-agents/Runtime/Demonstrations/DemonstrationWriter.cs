@@ -19,7 +19,7 @@ namespace Unity.MLAgents.Demonstrations
 
         DemonstrationMetaData m_MetaData;
         Stream m_Writer;
-        float m_CumulativeReward;
+        List <float> m_CumulativeRewardList;
         ObservationWriter m_ObservationWriter = new ObservationWriter();
 
         /// <summary>
@@ -30,6 +30,7 @@ namespace Unity.MLAgents.Demonstrations
         public DemonstrationWriter(Stream stream)
         {
             m_Writer = stream;
+            m_CumulativeRewardList = new List<float>();
         }
 
         /// <summary>
@@ -115,7 +116,50 @@ namespace Unity.MLAgents.Demonstrations
 
             // Increment meta-data counters.
             m_MetaData.numberSteps++;
-            m_CumulativeReward += info.reward;
+           
+             for(var i = 0; i < info.reward.Count; i++)
+                {
+                    m_CumulativeRewardList.Add(info.reward[i]);
+                }
+            
+            
+            
+            // m_CumulativeReward += info.reward;
+            if (info.done)
+            {
+                EndEpisode();
+            }
+
+            // Generate observations and add AgentInfo to file.
+            var agentProto = info.ToInfoActionPairProto();
+            foreach (var sensor in sensors)
+            {
+                agentProto.AgentInfo.Observations.Add(sensor.GetObservationProto(m_ObservationWriter));
+            }
+
+            agentProto.WriteDelimitedTo(m_Writer);
+        }
+
+
+        internal void Record(MoAgentInfo info, List<ISensor> sensors)
+        {
+            if (m_Writer == null)
+            {
+                // Already closed
+                return;
+            }
+
+            // Increment meta-data counters.
+            m_MetaData.numberSteps++;
+
+            for (var i = 0; i < info.reward.Count; i++)
+            {
+                m_CumulativeRewardList.Add(info.reward[i]);
+            }
+
+
+
+            // m_CumulativeReward += info.reward;
             if (info.done)
             {
                 EndEpisode();
@@ -144,7 +188,15 @@ namespace Unity.MLAgents.Demonstrations
             }
 
             EndEpisode();
-            m_MetaData.meanReward = m_CumulativeReward / m_MetaData.numberEpisodes;
+           // m_MetaData.meanReward = m_CumulativeReward / m_MetaData.numberEpisodes;
+            
+            for(var i = 0; i < m_CumulativeRewardList.Count; i++)
+            {
+                    m_MetaData.meanReward += m_CumulativeRewardList[i] / m_MetaData.numberEpisodes;
+            }
+            
+            
+            
             WriteMetadata();
             m_Writer.Close();
             m_Writer = null;

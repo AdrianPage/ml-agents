@@ -155,6 +155,8 @@ namespace Unity.MLAgents
         /// <param name="sensors">The list of ISensors of the Agent.</param>
         void PutObservations(string brainKey, AgentInfo info, List<ISensor> sensors);
 
+        void PutObservations(string brainKey, MoAgentInfo info, List<ISensor> sensors);
+
         /// <summary>
         /// Signals the ICommunicator that the Agents are now ready to receive their action
         /// and that if the communicator has not yet received an action for one of the Agents

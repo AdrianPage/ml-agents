@@ -55,6 +55,31 @@ namespace Unity.MLAgents
             };
         }
 
+        public static AgentInfoActionPairProto ToInfoActionPairProto(this MoAgentInfo ai)
+        {
+            var agentInfoProto = ai.ToAgentInfoProto();
+
+            var agentActionProto = new AgentActionProto();
+
+            if (!ai.storedActions.IsEmpty())
+            {
+                if (!ai.storedActions.ContinuousActions.IsEmpty())
+                {
+                    agentActionProto.ContinuousActions.AddRange(ai.storedActions.ContinuousActions.Array);
+                }
+                if (!ai.storedActions.DiscreteActions.IsEmpty())
+                {
+                    agentActionProto.DiscreteActions.AddRange(ai.storedActions.DiscreteActions.Array);
+                }
+            }
+
+            return new AgentInfoActionPairProto
+            {
+                AgentInfo = agentInfoProto,
+                ActionInfo = agentActionProto
+            };
+        }
+
         /// <summary>
         /// Converts a AgentInfo to a protobuf generated AgentInfoProto
         /// </summary>
@@ -77,15 +102,62 @@ namespace Unity.MLAgents
                     }
                 }
             }
+            
+            //This has been updated so rewards are added to a list after initialisation
             var agentInfoProto = new AgentInfoProto
             {
-                Reward = ai.reward,
-                GroupReward = ai.groupReward,
+
+               // Reward = ai.reward, 
+               // groupReward = ai.groupReward,
                 MaxStepReached = ai.maxStepReached,
                 Done = ai.done,
                 Id = ai.episodeId,
                 GroupId = ai.groupId,
             };
+            agentInfoProto.Reward.Add(ai.reward);
+            agentInfoProto.GroupReward.Add(ai.groupReward);
+            
+            if (ai.discreteActionMasks != null)
+            {
+                agentInfoProto.ActionMask.AddRange(ai.discreteActionMasks);
+            }
+
+            return agentInfoProto;
+        }
+
+
+        public static AgentInfoProto ToAgentInfoProto(this MoAgentInfo ai)
+        {
+            if (ai.groupId > 0)
+            {
+                var trainerCanHandle = Academy.Instance.TrainerCapabilities == null || Academy.Instance.TrainerCapabilities.MultiAgentGroups;
+                if (!trainerCanHandle)
+                {
+                    if (!s_HaveWarnedTrainerCapabilitiesAgentGroup)
+                    {
+                        Debug.LogWarning(
+                            $"Attached trainer doesn't support Multi Agent Groups; group rewards will be ignored." +
+                            "Please find the versions that work best together from our release page: " +
+                            "https://github.com/Unity-Technologies/ml-agents/releases"
+                        );
+                        s_HaveWarnedTrainerCapabilitiesAgentGroup = true;
+                    }
+                }
+            }
+
+            //This has been updated so rewards are added to a list after initialisation
+            var agentInfoProto = new AgentInfoProto
+            {
+
+                // Reward = ai.reward, 
+                // groupReward = ai.groupReward,
+                MaxStepReached = ai.maxStepReached,
+                Done = ai.done,
+                Id = ai.episodeId,
+                GroupId = ai.groupId,
+            };
+            agentInfoProto.Reward.Add(ai.reward);
+            agentInfoProto.GroupReward.Add(ai.groupReward);
 
             if (ai.discreteActionMasks != null)
             {
@@ -94,6 +166,9 @@ namespace Unity.MLAgents
 
             return agentInfoProto;
         }
+
+       
+
 
         /// <summary>
         /// Get summaries for the observations in the AgentInfo part of the AgentInfoActionPairProto.

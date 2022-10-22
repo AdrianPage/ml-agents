@@ -10,8 +10,12 @@ namespace Unity.MLAgents.Inference
     internal struct AgentInfoSensorsPair
     {
         public AgentInfo agentInfo;
+       // public MoAgentInfo mAgentInfo;
+        
         public List<ISensor> sensors;
     }
+
+    
 
     internal class ModelRunner
     {
@@ -186,9 +190,57 @@ namespace Unity.MLAgents.Inference
             }
         }
 
+
+        public AgentInfo AgentInfoCopy(MoAgentInfo info)
+        {
+            AgentInfo aI = new AgentInfo();
+
+            aI.storedActions = info.storedActions;
+            aI.discreteActionMasks = info.discreteActionMasks;
+            aI.reward = info.reward;
+            aI.groupReward = info.groupReward;
+            aI.done = info.done;
+            aI.maxStepReached = info.maxStepReached;
+            aI.episodeId = info.episodeId;
+            aI.groupId = info.groupId;
+            return aI;
+        }
+
+
+
+        public void PutObservations(MoAgentInfo info, List<ISensor> sensors)
+        {
+#if DEBUG
+            m_SensorShapeValidator.ValidateSensors(sensors);
+#endif
+            AgentInfo aI = new AgentInfo();
+            aI = AgentInfoCopy(info);
+            m_Infos.Add(new AgentInfoSensorsPair
+            {
+                agentInfo = aI,
+                sensors = sensors
+            });
+
+            // We add the episodeId to this list to maintain the order in which the decisions were requested
+            m_OrderedAgentsRequestingDecisions.Add(info.episodeId);
+
+            if (!m_LastActionsReceived.ContainsKey(info.episodeId))
+            {
+                m_LastActionsReceived[info.episodeId] = ActionBuffers.Empty;
+            }
+            if (info.done)
+            {
+                // If the agent is done, we remove the key from the last action dictionary since no action
+                // should be taken.
+                m_LastActionsReceived.Remove(info.episodeId);
+            }
+        }
+
         public void DecideBatch()
         {
             var currentBatchSize = m_Infos.Count;
+
+
             if (currentBatchSize == 0)
             {
                 return;

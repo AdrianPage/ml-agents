@@ -282,12 +282,29 @@ namespace Unity.MLAgents.Policies
 
         internal void UpdateAgentPolicy()
         {
-            var agent = GetComponent<Agent>();
-            if (agent == null)
+            Agent sAgent = GetComponent<Agent>();
+            MoAgent mAgent = GetComponent<MoAgent>();
+
+               
+            
+            if (sAgent == null || mAgent == null)
             {
                 return;
             }
-            agent.ReloadPolicy();
+
+
+            if (sAgent != null)
+            {
+                sAgent.ReloadPolicy();
+            }
+
+            if (mAgent != null)
+            {
+                mAgent.ReloadPolicy();
+            }
+            
+            
+            
             OnPolicyUpdated?.Invoke(IsInHeuristicMode());
         }
     }
