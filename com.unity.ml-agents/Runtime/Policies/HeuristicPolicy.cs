@@ -40,6 +40,13 @@ namespace Unity.MLAgents.Policies
             m_DecisionRequested = true;
         }
 
+        public void RequestDecision(MoAgentInfo info, List<ISensor> sensors)
+        {
+            StepSensors(sensors);
+            m_Done = info.done;
+            m_DecisionRequested = true;
+        }
+
         /// <inheritdoc />
         public ref readonly ActionBuffers DecideAction()
         {

@@ -30,6 +30,7 @@ namespace Unity.MLAgents.Demonstrations
         public DemonstrationWriter(Stream stream)
         {
             m_Writer = stream;
+           
         }
 
         /// <summary>
@@ -116,6 +117,38 @@ namespace Unity.MLAgents.Demonstrations
             // Increment meta-data counters.
             m_MetaData.numberSteps++;
             m_CumulativeReward += info.reward;
+            if (info.done)
+            {
+                EndEpisode();
+            }
+
+            // Generate observations and add AgentInfo to file.
+            var agentProto = info.ToInfoActionPairProto();
+            foreach (var sensor in sensors)
+            {
+                agentProto.AgentInfo.Observations.Add(sensor.GetObservationProto(m_ObservationWriter));
+            }
+
+            agentProto.WriteDelimitedTo(m_Writer);
+        }
+
+
+        internal void Record(MoAgentInfo info, List<ISensor> sensors)
+        {
+            if (m_Writer == null)
+            {
+                // Already closed
+                return;
+            }
+
+            // Increment meta-data counters.
+            m_MetaData.numberSteps++;
+
+            for (var i = 0; i < info.reward.Count; i++)
+            {
+                m_CumulativeReward += info.reward[i];
+            }
+
             if (info.done)
             {
                 EndEpisode();

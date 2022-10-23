@@ -105,6 +105,13 @@ namespace Unity.MLAgents.Policies
             m_ModelRunner?.PutObservations(info, sensors);
         }
 
+        public void RequestDecision(MoAgentInfo info, List<ISensor> sensors)
+        {
+            SendAnalytics(sensors);
+            m_AgentId = info.episodeId;
+            m_ModelRunner?.PutObservations(info, sensors);
+        }
+
         [Conditional("MLA_UNITY_ANALYTICS_MODULE")]
         void SendAnalytics(IList<ISensor> sensors)
         {

@@ -48,12 +48,14 @@ class TrainerType(Enum):
     PPO: str = "ppo"
     SAC: str = "sac"
     POCA: str = "poca"
+    MPPO: str = "mppo"
 
     def to_settings(self) -> type:
         _mapping = {
             TrainerType.PPO: PPOSettings,
             TrainerType.SAC: SACSettings,
             TrainerType.POCA: POCASettings,
+            TrainerType.MPPO: MPPOSettings,
         }
         return _mapping[self]
 
@@ -183,6 +185,7 @@ class PPOSettings(HyperparamSettings):
     learning_rate_schedule: ScheduleType = ScheduleType.LINEAR
     beta_schedule: ScheduleType = ScheduleType.LINEAR
     epsilon_schedule: ScheduleType = ScheduleType.LINEAR
+    
 
 
 @attr.s(auto_attribs=True)
@@ -203,6 +206,9 @@ class SACSettings(HyperparamSettings):
 
 # POCA uses the same hyperparameters as PPO
 POCASettings = PPOSettings
+
+# MPPO uses the same hyperparameters as PPO
+MPPOSettings = PPOSettings
 
 
 # INTRINSIC REWARD SIGNALS #############################################################

@@ -13,9 +13,17 @@ namespace Unity.MLAgents.Inference
         public List<ISensor> sensors;
     }
 
+    internal struct MoAgentInfoSensorsPair
+    {
+        public MoAgentInfo agentInfo;
+        public List<ISensor> sensors;
+    }
+
     internal class ModelRunner
     {
         List<AgentInfoSensorsPair> m_Infos = new List<AgentInfoSensorsPair>();
+        List<MoAgentInfoSensorsPair> mo_Infos = new List<MoAgentInfoSensorsPair>();
+
         Dictionary<int, ActionBuffers> m_LastActionsReceived = new Dictionary<int, ActionBuffers>();
         List<int> m_OrderedAgentsRequestingDecisions = new List<int>();
 
@@ -186,10 +194,45 @@ namespace Unity.MLAgents.Inference
             }
         }
 
+
+       
+
+        public void PutObservations(MoAgentInfo info, List<ISensor> sensors)
+        {
+#if DEBUG
+            m_SensorShapeValidator.ValidateSensors(sensors);
+#endif
+            //AgentInfo aI = new AgentInfo();
+            //aI = AgentInfoCopy(info);
+            mo_Infos.Add(new MoAgentInfoSensorsPair
+            {
+                agentInfo = info,
+                sensors = sensors
+            });
+
+            // We add the episodeId to this list to maintain the order in which the decisions were requested
+            m_OrderedAgentsRequestingDecisions.Add(info.episodeId);
+
+            if (!m_LastActionsReceived.ContainsKey(info.episodeId))
+            {
+                m_LastActionsReceived[info.episodeId] = ActionBuffers.Empty;
+            }
+            if (info.done)
+            {
+                // If the agent is done, we remove the key from the last action dictionary since no action
+                // should be taken.
+                m_LastActionsReceived.Remove(info.episodeId);
+            }
+        }
+
         public void DecideBatch()
         {
             var currentBatchSize = m_Infos.Count;
-            if (currentBatchSize == 0)
+            var mCurrentBatchSize = mo_Infos.Count;
+
+           
+
+            if (currentBatchSize == 0 && mCurrentBatchSize ==0)
             {
                 return;
             }
@@ -197,9 +240,22 @@ namespace Unity.MLAgents.Inference
             {
                 // Just grab the first agent in the collection (any will suffice, really).
                 // We check for an empty Collection above, so this will always return successfully.
-                var firstInfo = m_Infos[0];
-                m_TensorGenerator.InitializeObservations(firstInfo.sensors, m_TensorAllocator);
-                m_ObservationsInitialized = true;
+                //var firstInfo = m_Infos[0];
+                
+                //If currentBatchSize = 0 then we are looking at the Multi-Objective Version
+                if (currentBatchSize == 0)
+                {
+                    m_TensorGenerator.InitializeObservations(mo_Infos[0].sensors, m_TensorAllocator);
+                    m_ObservationsInitialized = true;
+                    
+                }
+                else 
+                {
+                    m_TensorGenerator.InitializeObservations(m_Infos[0].sensors, m_TensorAllocator);
+                    m_ObservationsInitialized = true;
+                }
+
+                
             }
 
             Profiler.BeginSample("ModelRunner.DecideAction");
@@ -207,7 +263,16 @@ namespace Unity.MLAgents.Inference
 
             Profiler.BeginSample($"GenerateTensors");
             // Prepare the input tensors to be feed into the engine
-            m_TensorGenerator.GenerateTensors(m_InferenceInputs, currentBatchSize, m_Infos);
+
+            if (currentBatchSize == 0)
+            {
+                m_TensorGenerator.GenerateTensors(m_InferenceInputs, mCurrentBatchSize, mo_Infos);
+            }
+            else 
+            {
+                m_TensorGenerator.GenerateTensors(m_InferenceInputs, currentBatchSize, m_Infos);
+            }
+           
             Profiler.EndSample();
 
             Profiler.BeginSample($"PrepareBarracudaInputs");
@@ -231,7 +296,16 @@ namespace Unity.MLAgents.Inference
             Profiler.EndSample(); // end name
             Profiler.EndSample(); // end ModelRunner.DecideAction
 
-            m_Infos.Clear();
+            if (currentBatchSize == 0)
+            {
+                mo_Infos.Clear();
+            }
+            else
+            {
+                m_Infos.Clear();
+            }
+
+            
 
             m_OrderedAgentsRequestingDecisions.Clear();
         }

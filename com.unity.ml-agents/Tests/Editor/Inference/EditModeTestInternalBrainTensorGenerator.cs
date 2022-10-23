@@ -73,31 +73,32 @@ namespace Unity.MLAgents.Tests
             alloc.Dispose();
         }
 
-        [Test]
-        public void GenerateBatchSize()
-        {
-            var inputTensor = new TensorProxy();
-            var alloc = new TensorCachingAllocator();
-            const int batchSize = 4;
-            var generator = new BatchSizeGenerator(alloc);
-            generator.Generate(inputTensor, batchSize, null);
-            Assert.IsNotNull(inputTensor.data);
-            Assert.AreEqual(inputTensor.data[0], batchSize);
-            alloc.Dispose();
-        }
+        
+        //[Test]
+        //public void GenerateBatchSize()
+       // {
+        //    var inputTensor = new TensorProxy();
+        //    var alloc = new TensorCachingAllocator();
+        //    const int batchSize = 4;
+        //    var generator = new BatchSizeGenerator(alloc);
+        //    generator.Generate(inputTensor, batchSize, null);
+        //    Assert.IsNotNull(inputTensor.data);
+        //    Assert.AreEqual(inputTensor.data[0], batchSize);
+        //    alloc.Dispose();
+        //}
 
-        [Test]
-        public void GenerateSequenceLength()
-        {
-            var inputTensor = new TensorProxy();
-            var alloc = new TensorCachingAllocator();
-            const int batchSize = 4;
-            var generator = new SequenceLengthGenerator(alloc);
-            generator.Generate(inputTensor, batchSize, null);
-            Assert.IsNotNull(inputTensor.data);
-            Assert.AreEqual(inputTensor.data[0], 1);
-            alloc.Dispose();
-        }
+        //[Test]
+        //public void GenerateSequenceLength()
+        //{
+        //    var inputTensor = new TensorProxy();
+        //    var alloc = new TensorCachingAllocator();
+        //    const int batchSize = 4;
+        //    var generator = new SequenceLengthGenerator(alloc);
+        //    generator.Generate(inputTensor, batchSize, null);
+        //    Assert.IsNotNull(inputTensor.data);
+        //    Assert.AreEqual(inputTensor.data[0], 1);
+        //    alloc.Dispose();
+        //}
 
         [Test]
         public void GenerateVectorObservation()

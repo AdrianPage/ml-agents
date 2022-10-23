@@ -22,6 +22,8 @@ namespace Unity.MLAgents.Policies
         /// <param name="sensors"></param>
         void RequestDecision(AgentInfo info, List<ISensor> sensors);
 
+        void RequestDecision(MoAgentInfo info, List<ISensor> sensors);
+
         /// <summary>
         /// Signals the Policy that if the Decision has not been taken yet,
         /// it must be taken now. The Brain is expected to update the actions

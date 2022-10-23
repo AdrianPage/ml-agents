@@ -32,7 +32,12 @@ namespace Unity.MLAgents.Inference
             /// </param>
             void Generate(
                 TensorProxy tensorProxy, int batchSize, IList<AgentInfoSensorsPair> infos);
+
+            void Generate(
+                TensorProxy tensorProxy, int batchSize, IList<MoAgentInfoSensorsPair> infos);
         }
+
+
 
         readonly Dictionary<string, IGenerator> m_Dict = new Dictionary<string, IGenerator>();
         int m_ApiVersion;
@@ -176,5 +181,26 @@ namespace Unity.MLAgents.Inference
                 m_Dict[tensor.name].Generate(tensor, currentBatchSize, infos);
             }
         }
+
+        public void GenerateTensors(
+           IReadOnlyList<TensorProxy> tensors, int currentBatchSize, IList<MoAgentInfoSensorsPair> infos)
+        {
+            for (var tensorIndex = 0; tensorIndex < tensors.Count; tensorIndex++)
+            {
+                var tensor = tensors[tensorIndex];
+                if (!m_Dict.ContainsKey(tensor.name))
+                {
+                    throw new UnityAgentsException(
+                        $"Unknown tensorProxy expected as input : {tensor.name}");
+                }
+                m_Dict[tensor.name].Generate(tensor, currentBatchSize, infos);
+            }
+        }
+
+
+
+
+
+
     }
 }

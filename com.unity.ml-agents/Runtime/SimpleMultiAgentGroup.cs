@@ -11,16 +11,30 @@ namespace Unity.MLAgents
     {
         readonly int m_Id = MultiAgentGroupIdCounter.GetGroupId();
         HashSet<Agent> m_Agents = new HashSet<Agent>();
+        HashSet<MoAgent> mo_Agents = new HashSet<MoAgent>();
 
         /// <summary>
         /// Disposes of the SimpleMultiAgentGroup.
         /// </summary>
         public virtual void Dispose()
         {
-            while (m_Agents.Count > 0)
+            if (m_Agents.Count > 0)
             {
-                UnregisterAgent(m_Agents.First());
+                while (m_Agents.Count > 0)
+                {
+                    UnregisterAgent(m_Agents.First());
+                }
             }
+            else
+            {
+                while (mo_Agents.Count > 0)
+                {
+                    UnregisterAgent(mo_Agents.First());
+                }
+            }
+
+
+            
         }
 
         /// <inheritdoc />
@@ -34,6 +48,17 @@ namespace Unity.MLAgents
             }
         }
 
+        public virtual void RegisterAgent(MoAgent agent)
+        {
+            if (!mo_Agents.Contains(agent))
+            {
+                agent.SetMultiAgentGroup(this);
+                mo_Agents.Add(agent);
+                agent.OnAgentDisabled += UnregisterAgent;
+            }
+        }
+
+
         /// <inheritdoc />
         public virtual void UnregisterAgent(Agent agent)
         {
@@ -41,6 +66,16 @@ namespace Unity.MLAgents
             {
                 agent.SetMultiAgentGroup(null);
                 m_Agents.Remove(agent);
+                agent.OnAgentDisabled -= UnregisterAgent;
+            }
+        }
+
+        public virtual void UnregisterAgent(MoAgent agent)
+        {
+            if (mo_Agents.Contains(agent))
+            {
+                agent.SetMultiAgentGroup(null);
+                mo_Agents.Remove(agent);
                 agent.OnAgentDisabled -= UnregisterAgent;
             }
         }
@@ -57,10 +92,19 @@ namespace Unity.MLAgents
         /// <returns>
         /// List of agents registered to the MultiAgentGroup.
         /// </returns>
-        public IReadOnlyCollection<Agent> GetRegisteredAgents()
+        public IReadOnlyCollection<object> GetRegisteredAgents()
         {
-            return m_Agents;
+            if (m_Agents.Count > 0)
+            {
+                return m_Agents;
+            }
+
+            return mo_Agents;
+
+
         }
+
+        
 
         /// <summary>
         /// Increments the group rewards for all agents in this MultiAgentGroup.
@@ -80,10 +124,22 @@ namespace Unity.MLAgents
         /// <param name="reward">Incremental group reward value.</param>
         public void AddGroupReward(float reward)
         {
-            foreach (var agent in m_Agents)
+            if (m_Agents.Count > 0)
             {
-                agent.AddGroupReward(reward);
+                foreach (var agent in m_Agents)
+                {
+                    agent.AddGroupReward(reward);
+                }
             }
+            else
+            {
+                foreach (var agent in mo_Agents)
+                {
+                    agent.AddGroupReward(0, reward);
+                }
+            }
+            
+            
         }
 
         /// <summary>
@@ -104,10 +160,24 @@ namespace Unity.MLAgents
         /// <param name="reward">The new value of the group reward.</param>
         public void SetGroupReward(float reward)
         {
-            foreach (var agent in m_Agents)
+            if (m_Agents.Count > 0)
             {
-                agent.SetGroupReward(reward);
+                foreach (var agent in m_Agents)
+                {
+                    agent.SetGroupReward(reward);
+                }
             }
+            else
+            {
+                foreach (var agent in mo_Agents)
+                {
+                    agent.SetGroupReward(0, reward);
+                }
+            }
+
+
+
+           
         }
 
         /// <summary>
@@ -119,10 +189,23 @@ namespace Unity.MLAgents
         /// </remarks>
         public void EndGroupEpisode()
         {
-            foreach (var agent in m_Agents)
+            if (m_Agents.Count > 0)
             {
-                agent.EndEpisode();
+                foreach (var agent in m_Agents)
+                {
+                    agent.EndEpisode();
+                }
             }
+            else
+            {
+                foreach (var agent in mo_Agents)
+                {
+                    agent.EndEpisode();
+                }
+            }
+
+
+            
         }
 
         /// <summary>
@@ -136,10 +219,21 @@ namespace Unity.MLAgents
         /// </remarks>
         public void GroupEpisodeInterrupted()
         {
-            foreach (var agent in m_Agents)
+            if (m_Agents.Count > 0)
             {
-                agent.EpisodeInterrupted();
+                foreach (var agent in m_Agents)
+                {
+                    agent.EpisodeInterrupted();
+                }
             }
+            else
+            {
+                foreach (var agent in mo_Agents)
+                {
+                    agent.EpisodeInterrupted();
+                }
+            }
+
         }
     }
 }

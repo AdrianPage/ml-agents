@@ -29,6 +29,15 @@ namespace Unity.MLAgents.Utils.Tests
             OnRequestDecision?.Invoke();
         }
 
+        public void RequestDecision(MoAgentInfo info, List<ISensor> sensors)
+        {
+            foreach (var sensor in sensors)
+            {
+                sensor.GetObservationProto(m_ObsWriter);
+            }
+            OnRequestDecision?.Invoke();
+        }
+
         public ref readonly ActionBuffers DecideAction() { return ref s_EmptyActionBuffers; }
 
         public void Dispose() { }
@@ -95,7 +104,10 @@ namespace Unity.MLAgents.Utils.Tests
         {
             agentActionCalls += 1;
             agentActionCallsForEpisode += 1;
+
             AddReward(0.1f);
+           
+
         }
 
         public override void OnEpisodeBegin()
