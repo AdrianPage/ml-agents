@@ -12,7 +12,7 @@ message AgentInfoProto {
     reserved 4; // repeated float stored_vector_actions = 4;
     reserved 5; // deprecated string stored_text_actions = 5;
     reserved 6; //repeated float memories = 6;
-    float reward = 7;
+    repeated float reward = 7;
     bool done = 8;
     bool max_step_reached = 9;
     int32 id = 10;
@@ -20,5 +20,5 @@ message AgentInfoProto {
     reserved 12; // deprecated CustomObservationProto custom_observation = 12;
     repeated ObservationProto observations = 13;
     int32 group_id = 14;
-    float group_reward = 15;
+    repeated float group_reward = 15;
 }
