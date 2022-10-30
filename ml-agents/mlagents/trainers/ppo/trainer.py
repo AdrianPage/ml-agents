@@ -18,6 +18,7 @@ from mlagents.trainers.trajectory import Trajectory
 from mlagents.trainers.behavior_id_utils import BehaviorIdentifiers
 from mlagents.trainers.settings import TrainerSettings, PPOSettings
 
+
 logger = get_logger(__name__)
 
 
@@ -124,9 +125,15 @@ class PPOTrainer(RLTrainer):
             local_value_estimates = agent_buffer_trajectory[
                 RewardSignalUtil.value_estimates_key(name)
             ].get_batch()
-
+            
+            # get the floats from the array
+            floatarray = []
+      
+            for r in local_rewards:
+               floatarray.append(r[0]) 
+    
             local_advantage = get_gae(
-                rewards=local_rewards,
+                rewards=floatarray,
                 value_estimates=local_value_estimates,
                 value_next=bootstrap_value,
                 gamma=self.optimizer.reward_signals[name].gamma,
